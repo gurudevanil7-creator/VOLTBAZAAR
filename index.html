@@ -11,49 +11,58 @@
     <!-- FontAwesome for Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;900&display=swap');
         body { font-family: 'Plus Jakarta Sans', sans-serif; }
+        [v-cloak] { display: none; }
+        
+        /* Custom Scrollbar for a premium feel */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #0f172a; }
+        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #475569; }
     </style>
 </head>
 <body class="bg-slate-900 text-slate-100 min-h-screen antialiased">
 
 <div id="app" v-cloak>
     <!-- Top Navigation Bar -->
-    <header class="border-b border-slate-800 bg-slate-950/80 backdrop-blur sticky top-0 z-50 px-4 lg:px-8 py-4">
-        <div class="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
+    <header class="border-b border-slate-800 bg-slate-950/90 backdrop-blur sticky top-0 z-50 px-4 lg:px-8 py-4">
+        <div class="max-w-7xl mx-auto flex flex-col lg:flex-row items-center justify-between gap-4">
             <!-- Brand Logo -->
-            <div class="flex items-center gap-3">
+            <div class="flex items-center gap-3 w-full lg:w-auto">
                 <div class="bg-lime-500 text-slate-950 p-2.5 rounded-xl font-black text-xl tracking-wider shadow-lg shadow-lime-500/20">
                     <i class="fa-solid fa-bolt-lightning mr-1"></i>VOLT
                 </div>
                 <div>
-                    <span class="text-xl font-bold tracking-tight text-white block">Bazaar</span>
-                    <span class="text-xs text-slate-400">Premium B2B EV Supply Hub</span>
+                    <span class="text-xl font-bold tracking-tight text-white block leading-none">Bazaar</span>
+                    <span class="text-[11px] font-semibold text-slate-400 uppercase tracking-widest">Retailer Portal</span>
                 </div>
             </div>
 
-            <!-- Global Search Box -->
-            <div class="w-full sm:w-96 relative">
-                <i class="fa-solid fa-magnifying-glass absolute left-4 top-3.5 text-slate-500"></i>
-                <input type="text" placeholder="Search bulk battery packs, controllers, motors..." 
-                       class="w-full bg-slate-900 border border-slate-800 rounded-xl py-2.5 pl-11 pr-4 text-sm focus:outline-none focus:border-lime-400 focus:ring-1 focus:ring-lime-400 transition-all text-white">
+            <!-- Global Search Box (NOW FUNCTIONAL) -->
+            <div class="w-full lg:w-[450px] relative">
+                <i class="fa-solid fa-magnifying-glass absolute left-4 top-3.5 text-slate-400"></i>
+                <input v-model="searchQuery" type="text" placeholder="Search motors, BMS, controllers..." 
+                       class="w-full bg-slate-900 border border-slate-700 rounded-xl py-2.5 pl-11 pr-10 text-sm focus:outline-none focus:border-lime-400 focus:ring-1 focus:ring-lime-400 transition-all text-white placeholder-slate-500">
+                <button v-if="searchQuery" @click="searchQuery = ''" class="absolute right-3 top-3.5 text-slate-400 hover:text-white">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
             </div>
 
             <!-- Fintech Wallet & Cart Triggers -->
-            <div class="flex items-center gap-4 w-full sm:w-auto justify-end">
-                <div class="bg-slate-900 border border-slate-800 px-4 py-2 rounded-xl flex items-center gap-3">
+            <div class="flex items-center gap-4 w-full lg:w-auto justify-between lg:justify-end">
+                <div class="bg-slate-900 border border-slate-700 px-4 py-2 rounded-xl flex items-center gap-3">
                     <div class="w-2 h-2 rounded-full bg-lime-400 animate-pulse"></div>
                     <div>
-                        <p class="text-[10px] text-slate-400 uppercase font-semibold tracking-wider">Volt-Khata Limit</p>
-                        <p class="text-sm font-bold text-white">₹{{ formatCurrency(availableCredit) }}</p>
+                        <p class="text-[10px] text-slate-400 uppercase font-bold tracking-wider">Volt-Khata Limit</p>
+                        <p class="text-sm font-black text-white">₹{{ formatCurrency(availableCredit) }}</p>
                     </div>
-                    <span class="bg-slate-800 text-slate-300 text-[10px] px-1.5 py-0.5 rounded font-mono">Verified</span>
                 </div>
 
-                <button @click="isCartOpen = true" class="relative bg-lime-500 hover:bg-lime-400 text-slate-950 font-bold px-4 py-2.5 rounded-xl flex items-center gap-2 transition-all cursor-pointer shadow-lg shadow-lime-500/10">
-                    <i class="fa-solid fa-boxes-stacked"></i>
+                <button @click="isCartOpen = true" class="relative bg-lime-500 hover:bg-lime-400 text-slate-950 font-bold px-5 py-2.5 rounded-xl flex items-center gap-2 transition-all cursor-pointer shadow-lg shadow-lime-500/20">
+                    <i class="fa-solid fa-cart-flatbed"></i>
                     <span>Store Order</span>
-                    <span v-if="cart.length" class="absolute -top-2 -right-2 bg-rose-500 text-white text-xs w-5 h-5 rounded-full flex items-center justify-center border-2 border-slate-950 font-bold">{{ cart.length }}</span>
+                    <span v-if="cart.length" class="absolute -top-2 -right-2 bg-rose-500 text-white text-xs w-6 h-6 rounded-full flex items-center justify-center border-2 border-slate-950 font-bold shadow-sm">{{ cart.length }}</span>
                 </button>
             </div>
         </div>
@@ -61,116 +70,46 @@
 
     <main class="max-w-7xl mx-auto px-4 lg:px-8 py-8 space-y-12">
         
-        <!-- Value Prop Banner Row -->
-        <section class="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div class="bg-gradient-to-br from-slate-950 to-slate-900 border border-slate-800 p-5 rounded-2xl flex gap-4 items-start">
-                <div class="bg-lime-500/10 text-lime-400 p-3 rounded-xl"><i class="fa-solid fa-truck-ramp-box text-xl"></i></div>
-                <div>
-                    <h3 class="font-bold text-white mb-1">Route-Optimized Shipping</h3>
-                    <p class="text-xs text-slate-400 leading-relaxed">Scheduled bulk logistics drop-offs directly to your retail shop door, keeping freight fees near zero.</p>
-                </div>
-            </div>
-            <div class="bg-gradient-to-br from-slate-950 to-slate-900 border border-slate-800 p-5 rounded-2xl flex gap-4 items-start">
-                <div class="bg-cyan-500/10 text-cyan-400 p-3 rounded-xl"><i class="fa-solid fa-shield-halved text-xl"></i></div>
-                <div>
-                    <h3 class="font-bold text-white mb-1">100% Certified OEM Quality</h3>
-                    <p class="text-xs text-slate-400 leading-relaxed">Bypass localized counterfeit layers. All power electronics ship directly with dynamic technical validation layouts.</p>
-                </div>
-            </div>
-            <div class="bg-gradient-to-br from-slate-950 to-slate-900 border border-slate-800 p-5 rounded-2xl flex gap-4 items-start">
-                <div class="bg-purple-500/10 text-purple-400 p-3 rounded-xl"><i class="fa-solid fa-handshake text-xl"></i></div>
-                <div>
-                    <h3 class="font-bold text-white mb-1">Revolving 30-Day Lines</h3>
-                    <p class="text-xs text-slate-400 leading-relaxed">Keep your cash flow clear. Check out securely with built-in digital NBFC credit terms instantly approved via GST.</p>
-                </div>
-            </div>
-        </section>
-
         <!-- Volt-Fit Compatibility Engine Widget -->
-        <section class="bg-gradient-to-r from-slate-950 via-slate-900 to-slate-950 border border-slate-800 rounded-3xl p-6 lg:p-8 shadow-xl">
-            <div class="max-w-3xl mb-8">
-                <span class="bg-lime-500/10 text-lime-400 text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider">Zero-Return System</span>
+        <section class="bg-gradient-to-r from-slate-950 via-slate-900 to-slate-950 border border-slate-800 rounded-3xl p-6 lg:p-8 shadow-2xl relative overflow-hidden">
+            <!-- Decorative background element -->
+            <div class="absolute top-0 right-0 w-64 h-64 bg-lime-500/5 rounded-full blur-3xl pointer-events-none"></div>
+
+            <div class="max-w-3xl mb-8 relative z-10">
+                <span class="bg-lime-500/10 border border-lime-500/20 text-lime-400 text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider">Zero-Return System</span>
                 <h2 class="text-2xl font-black text-white mt-3 mb-2 tracking-tight">Volt-Fit Live Compatibility Configurator</h2>
                 <p class="text-sm text-slate-400">Lock down part matching before buying in bulk. Eliminate wrong-part order errors and reverse freight losses for your storefront instantly.</p>
             </div>
 
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6 relative z-10">
                 <div>
-                    <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">1. Select Target Vehicle OEM</label>
-                    <select v-model="fitFilter.make" @change="fitFilter.model = ''" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-sm focus:outline-none focus:border-lime-400 text-white cursor-pointer">
+                    <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">1. Vehicle Brand</label>
+                    <select v-model="fitFilter.make" @change="fitFilter.model = ''" class="w-full bg-slate-950 border border-slate-700 rounded-xl p-3 text-sm focus:outline-none focus:border-lime-400 text-white cursor-pointer hover:border-slate-500 transition-colors">
                         <option value="">-- Choose Brand --</option>
                         <option v-for="(models, make) in compatMatrix" :key="make" :value="make">{{ make }}</option>
                     </select>
                 </div>
                 <div>
-                    <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">2. Select Specific Model Variant</label>
-                    <select v-model="fitFilter.model" :disabled="!fitFilter.make" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-sm focus:outline-none focus:border-lime-400 text-white disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer">
+                    <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">2. Exact Model</label>
+                    <select v-model="fitFilter.model" :disabled="!fitFilter.make" class="w-full bg-slate-950 border border-slate-700 rounded-xl p-3 text-sm focus:outline-none focus:border-lime-400 text-white disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer hover:border-slate-500 transition-colors">
                         <option value="">-- Choose Model --</option>
                         <option v-for="model in compatMatrix[fitFilter.make]" :key="model" :value="model">{{ model }}</option>
                     </select>
                 </div>
                 <div class="flex items-end">
-                    <button @click="resetCompatibilityFilter" :disabled="!fitFilter.make && !fitFilter.model" class="w-full border border-slate-800 hover:border-slate-700 bg-slate-900/50 hover:bg-slate-900 text-slate-300 text-sm font-semibold p-3 rounded-xl transition-all disabled:opacity-40 cursor-pointer">
-                        <i class="fa-solid fa-arrow-rotate-left mr-2"></i>Clear Verification Filter
+                    <button @click="resetCompatibilityFilter" :disabled="!fitFilter.make && !fitFilter.model" class="w-full border border-slate-700 hover:border-slate-500 bg-slate-900/50 hover:bg-slate-800 text-slate-300 text-sm font-bold p-3 rounded-xl transition-all disabled:opacity-40 cursor-pointer">
+                        <i class="fa-solid fa-arrow-rotate-left mr-2"></i>Clear Filter
                     </button>
                 </div>
             </div>
 
             <!-- Active Filter Status Toast -->
-            <div v-if="fitFilter.make && fitFilter.model" class="bg-lime-950/40 border border-lime-800/60 rounded-xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div v-if="fitFilter.make && fitFilter.model" class="bg-lime-950/40 border border-lime-800/60 rounded-xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4 mt-4 relative z-10 animate-fade-in">
                 <div class="flex items-center gap-3">
-                    <div class="bg-lime-500 text-slate-950 w-8 h-8 rounded-full flex items-center justify-center font-bold shadow-md"><i class="fa-solid fa-check"></i></div>
+                    <div class="bg-lime-500 text-slate-950 w-10 h-10 rounded-full flex items-center justify-center font-bold shadow-md text-lg"><i class="fa-solid fa-shield-check"></i></div>
                     <div>
-                        <p class="text-sm font-bold text-white">Volt-Fit Mode Active: Guaranteed fitment for {{ fitFilter.make }} {{ fitFilter.model }}</p>
-                        <p class="text-xs text-lime-400/80">Showing only components mathematically mapped to this layout framework.</p>
-                    </div>
-                </div>
-                <span class="bg-lime-400/10 text-lime-400 text-xs px-3 py-1 rounded-md font-mono border border-lime-500/20 self-start sm:self-auto">Zero Returns Applied</span>
-            </div>
-        </section>
-
-        <!-- B2B Group-Buy Pooling (Demand Consolidation) -->
-        <section class="space-y-6">
-            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-2">
-                <div>
-                    <span class="bg-cyan-500/10 text-cyan-400 text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider">Factory-Direct Pooling</span>
-                    <h2 class="text-2xl font-black text-white mt-3 mb-1 tracking-tight">Active Group-Buy Volumes</h2>
-                    <p class="text-sm text-slate-400">Combine orders with fellow retailers nationwide to shatter manufacturer MOQ milestones together.</p>
-                </div>
-            </div>
-
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <div v-for="pool in groupBuys" :key="pool.id" class="bg-slate-950 border border-slate-800 rounded-2xl p-6 flex flex-col justify-between gap-6 relative overflow-hidden">
-                    <div class="absolute top-0 right-0 bg-cyan-500/10 text-cyan-400 text-[10px] font-mono tracking-widest uppercase px-3 py-1 rounded-bl-xl border-l border-b border-slate-800">
-                        MOQ Target Pool
-                    </div>
-                    <div>
-                        <div class="flex items-center gap-2 mb-2">
-                            <span class="bg-slate-900 border border-slate-800 text-slate-400 text-[10px] px-2 py-0.5 rounded font-mono">{{ pool.sku }}</span>
-                        </div>
-                        <h3 class="text-lg font-bold text-white mb-1">{{ pool.title }}</h3>
-                        <p class="text-xs text-slate-400">Target MOQ Discount: <span class="text-cyan-400 font-bold">{{ pool.discount }} extra margin</span> once batch threshold unlocks.</p>
-                    </div>
-
-                    <!-- Progress Bar System -->
-                    <div class="space-y-2">
-                        <div class="flex justify-between items-center text-xs">
-                            <span class="text-slate-400">Current Volume Committed: <strong class="text-white">{{ pool.current }} / {{ pool.target }} Units</strong></span>
-                            <span class="font-mono text-cyan-400 font-bold">{{ Math.round((pool.current / pool.target) * 100) }}%</span>
-                        </div>
-                        <div class="w-full bg-slate-900 h-2.5 rounded-full overflow-hidden border border-slate-800">
-                            <div class="bg-gradient-to-r from-cyan-500 to-blue-500 h-full rounded-full transition-all duration-500" :style="{ width: (pool.current / pool.target) * 100 + '%' }"></div>
-                        </div>
-                    </div>
-
-                    <div class="flex items-center justify-between gap-4 pt-2 border-t border-slate-900">
-                        <div>
-                            <p class="text-[10px] text-slate-500 uppercase tracking-wider">Wholesale Price</p>
-                            <p class="text-base font-black text-white">₹{{ formatCurrency(pool.price) }}<span class="text-xs font-normal text-slate-400"> / Pack</span></p>
-                        </div>
-                        <button @click="joinGroupBuy(pool)" class="bg-slate-900 hover:bg-slate-800 border border-slate-800 hover:border-slate-700 text-cyan-400 text-xs font-bold px-4 py-2.5 rounded-xl transition-all cursor-pointer">
-                            <i class="fa-solid fa-right-to-bracket mr-1.5"></i> Commit 5 Packs
-                        </button>
+                        <p class="text-sm font-bold text-white">Guaranteed fitment applied for: <span class="text-lime-400">{{ fitFilter.make }} {{ fitFilter.model }}</span></p>
+                        <p class="text-xs text-slate-300 mt-0.5">Showing only parts tested and approved for this specific vehicle.</p>
                     </div>
                 </div>
             </div>
@@ -180,139 +119,230 @@
         <section class="space-y-6">
             <div class="border-b border-slate-800 pb-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                 <div>
-                    <h2 class="text-2xl font-black text-white tracking-tight">Verified Wholesale Core Catalog</h2>
-                    <p class="text-sm text-slate-400">High-barrier power electronics, drivetrains, and wiring structures available to stock immediately.</p>
+                    <h2 class="text-2xl font-black text-white tracking-tight">Wholesale Core Catalog</h2>
+                    <p class="text-sm text-slate-400 mt-1">Showing {{ filteredProducts.length }} products available for bulk route-delivery.</p>
                 </div>
                 <!-- Category Filters -->
-                <div class="flex gap-2 overflow-x-auto w-full sm:w-auto pb-2 sm:pb-0">
-                    <button v-for="cat in ['All Categories', 'Power Subsystems', 'Drivetrains', 'Wiring & Safety']" 
+                <div class="flex gap-2 overflow-x-auto w-full sm:w-auto pb-2 sm:pb-0 scrollbar-hide">
+                    <button v-for="cat in ['All Categories', 'Power Subsystems', 'Drivetrains', 'Wiring & Sensors', 'Accessories']" 
                             :key="cat"
                             @click="activeCategory = cat"
-                            :class="['text-xs font-semibold px-4 py-2 rounded-xl border whitespace-nowrap transition-all cursor-pointer', 
-                                     activeCategory === cat ? 'bg-lime-500 border-lime-500 text-slate-950 font-bold' : 'bg-slate-950 border-slate-800 text-slate-400 hover:text-white hover:border-slate-700']">
+                            :class="['text-xs font-bold px-4 py-2.5 rounded-xl border whitespace-nowrap transition-all cursor-pointer', 
+                                     activeCategory === cat ? 'bg-lime-500 border-lime-500 text-slate-950 shadow-md shadow-lime-500/20' : 'bg-slate-950 border-slate-700 text-slate-400 hover:text-white hover:border-slate-500']">
                         {{ cat }}
                     </button>
                 </div>
             </div>
 
             <!-- Product Cards Grid -->
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                <div v-for="product in filteredProducts" :key="product.id" class="bg-slate-950 border border-slate-800 rounded-2xl p-5 flex flex-col justify-between hover:border-slate-700 transition-all group">
-                    <div>
-                        <!-- Card Header Flags -->
-                        <div class="flex justify-between items-start gap-2 mb-4">
-                            <span class="bg-slate-900 border border-slate-800 text-slate-400 text-[10px] font-mono px-2 py-0.5 rounded">{{ product.category }}</span>
-                            <span class="bg-emerald-500/10 text-emerald-400 text-[11px] font-bold px-2 py-0.5 rounded border border-emerald-500/20">
-                                <i class="fa-solid fa-chart-line mr-1"></i>{{ product.margin }} Shop Margin
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                <div v-for="product in filteredProducts" :key="product.id" class="bg-slate-950 border border-slate-800 rounded-2xl flex flex-col justify-between hover:border-slate-600 transition-all group overflow-hidden shadow-lg">
+                    
+                    <!-- Product Image -->
+                    <div class="w-full h-48 bg-slate-900 border-b border-slate-800 relative overflow-hidden">
+                        <img :src="product.image" :alt="product.name" class="w-full h-full object-cover opacity-90 group-hover:opacity-100 group-hover:scale-105 transition-all duration-500">
+                        <div class="absolute top-2 right-2">
+                            <span class="bg-slate-950/80 backdrop-blur border border-slate-700 text-lime-400 text-[10px] font-black px-2.5 py-1 rounded-lg shadow-sm">
+                                Margin: {{ product.margin }}
                             </span>
+                        </div>
+                    </div>
+
+                    <div class="p-5 flex-1 flex flex-col">
+                        <!-- Card Header Flags -->
+                        <div class="flex justify-between items-start gap-2 mb-3">
+                            <span class="text-slate-500 text-[10px] font-bold uppercase tracking-wider">{{ product.category }}</span>
                         </div>
 
                         <!-- Product Title / Spec Details -->
-                        <h3 class="font-bold text-white text-base mb-1 group-hover:text-lime-400 transition-colors">{{ product.name }}</h3>
-                        <p class="text-xs text-slate-400 mb-4 leading-relaxed">{{ product.description }}</p>
+                        <h3 class="font-bold text-white text-base mb-2 group-hover:text-lime-400 transition-colors leading-tight">{{ product.name }}</h3>
+                        
+                        <!-- Manufacturer Button -->
+                        <button @click="openManufacturerModal(product.manufacturer)" class="flex items-center gap-1.5 text-[11px] text-cyan-400 hover:text-cyan-300 font-semibold mb-4 w-fit bg-cyan-950/30 px-2 py-1 rounded border border-cyan-900/50 transition-colors">
+                            <i class="fa-solid fa-industry"></i> {{ product.manufacturer.name }} <i class="fa-solid fa-circle-info ml-1"></i>
+                        </button>
 
                         <!-- Specifications Grid -->
-                        <div class="bg-slate-900/60 rounded-xl p-3 space-y-2 mb-4 border border-slate-900">
+                        <div class="bg-slate-900/80 rounded-xl p-3 space-y-2 mt-auto border border-slate-800">
                             <div class="flex justify-between text-[11px]">
-                                <span class="text-slate-500">Bulk Quantity:</span>
-                                <span class="text-slate-300 font-semibold">{{ product.bundleSize }}</span>
+                                <span class="text-slate-400">Bulk Box:</span>
+                                <span class="text-white font-bold">{{ product.bundleSize }}</span>
                             </div>
                             <div class="flex justify-between text-[11px]">
-                                <span class="text-slate-500">Fit Compatibility:</span>
-                                <span class="text-lime-400 font-mono text-[10px] truncate max-w-[180px] font-semibold">{{ product.compatSummary }}</span>
+                                <span class="text-slate-400">Fitment:</span>
+                                <span class="text-lime-400 font-mono text-[10px] truncate max-w-[140px] font-bold">{{ product.compatSummary }}</span>
                             </div>
                         </div>
                     </div>
 
                     <!-- Card Footer Actions -->
-                    <div class="pt-3 border-t border-slate-900 flex items-center justify-between gap-2">
+                    <div class="p-4 border-t border-slate-800 bg-slate-900/30 flex items-center justify-between gap-2">
                         <div>
-                            <p class="text-[10px] text-slate-500 uppercase font-semibold">Bulk Box Cost</p>
+                            <p class="text-[9px] text-slate-500 uppercase font-bold tracking-wider mb-0.5">Wholesale Price</p>
                             <p class="text-lg font-black text-white">₹{{ formatCurrency(product.price) }}</p>
                         </div>
-                        <button @click="addToCart(product)" class="bg-slate-900 hover:bg-lime-500 text-lime-400 hover:text-slate-950 border border-slate-800 hover:border-lime-500 px-3.5 py-2 rounded-xl transition-all text-xs font-bold flex items-center gap-1.5 cursor-pointer">
-                            <i class="fa-solid fa-cart-plus"></i> Add Box
+                        <button @click="addToCart(product)" class="bg-slate-800 hover:bg-lime-500 text-white hover:text-slate-950 border border-slate-700 hover:border-lime-500 px-4 py-2.5 rounded-xl transition-all text-xs font-bold flex items-center gap-2 cursor-pointer shadow-sm">
+                            <i class="fa-solid fa-plus"></i> Add
                         </button>
                     </div>
                 </div>
             </div>
 
-            <!-- Empty State -->
-            <div v-if="filteredProducts.length === 0" class="text-center py-12 bg-slate-950 border border-slate-800 rounded-2xl">
-                <i class="fa-solid fa-filter-circle-xmark text-4xl text-slate-700 mb-3"></i>
-                <p class="text-sm font-bold text-slate-300">No components fit the selected parameters.</p>
-                <p class="text-xs text-slate-500 mt-1">Clear your active Volt-Fit compatibility filter to browse the full asset log.</p>
+            <!-- Empty State for Search/Filters -->
+            <div v-if="filteredProducts.length === 0" class="text-center py-16 bg-slate-950 border border-slate-800 rounded-3xl shadow-inner">
+                <div class="bg-slate-900 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-4 border border-slate-800">
+                    <i class="fa-solid fa-box-open text-3xl text-slate-600"></i>
+                </div>
+                <p class="text-lg font-bold text-white mb-1">No components found</p>
+                <p class="text-sm text-slate-400 max-w-md mx-auto">We couldn't find any parts matching your current search or vehicle compatibility filters.</p>
+                <button @click="resetAllFilters" class="mt-6 bg-slate-800 hover:bg-slate-700 text-white font-bold py-2 px-6 rounded-xl border border-slate-700 transition-colors">
+                    Clear All Filters
+                </button>
             </div>
         </section>
     </main>
 
-    <!-- Slide-over B2B Cart Drawer Panel -->
-    <div v-if="isCartOpen" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-xs flex justify-end transition-all">
-        <div class="w-full max-w-md bg-slate-950 border-l border-slate-800 h-full flex flex-col justify-between shadow-2xl animate-slide-in">
-            <!-- Drawer Header -->
-            <div class="p-6 border-b border-slate-800 flex items-center justify-between bg-slate-900/40">
-                <div class="flex items-center gap-2">
-                    <i class="fa-solid fa-boxes-stacked text-lime-400 text-lg"></i>
-                    <h2 class="text-lg font-bold text-white">Your Storefront Order</h2>
+    <!-- Manufacturer Certification Modal -->
+    <div v-if="isManufacturerModalOpen" class="fixed inset-0 z-50 flex items-center justify-center px-4">
+        <!-- Backdrop -->
+        <div class="absolute inset-0 bg-slate-950/80 backdrop-blur-sm" @click="isManufacturerModalOpen = false"></div>
+        
+        <!-- Modal Content -->
+        <div class="relative bg-slate-900 border border-slate-700 rounded-2xl w-full max-w-lg shadow-2xl overflow-hidden animate-fade-in">
+            <div class="p-6 border-b border-slate-800 flex justify-between items-center bg-slate-950">
+                <div class="flex items-center gap-3">
+                    <div class="bg-cyan-500/10 text-cyan-400 w-10 h-10 rounded-lg flex items-center justify-center text-xl border border-cyan-500/20">
+                        <i class="fa-solid fa-certificate"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-lg font-black text-white leading-tight">Supplier Verification</h3>
+                        <p class="text-xs text-slate-400">VoltBazaar Trust & Safety Team</p>
+                    </div>
                 </div>
-                <button @click="isCartOpen = false" class="text-slate-400 hover:text-white p-1 cursor-pointer"><i class="fa-solid fa-xmark text-lg"></i></button>
+                <button @click="isManufacturerModalOpen = false" class="text-slate-500 hover:text-white bg-slate-800 hover:bg-slate-700 w-8 h-8 rounded-full flex items-center justify-center transition-colors">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+            
+            <div class="p-6 space-y-5">
+                <div>
+                    <p class="text-xs text-slate-500 font-bold uppercase tracking-wider mb-1">Manufacturer Name</p>
+                    <p class="text-xl font-bold text-white">{{ selectedManufacturer.name }}</p>
+                </div>
+                
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="bg-slate-950 border border-slate-800 p-4 rounded-xl">
+                        <i class="fa-solid fa-award text-lime-400 mb-2 text-lg"></i>
+                        <p class="text-[10px] text-slate-500 font-bold uppercase mb-1">Certifications</p>
+                        <p class="text-sm font-semibold text-white">{{ selectedManufacturer.certification }}</p>
+                    </div>
+                    <div class="bg-slate-950 border border-slate-800 p-4 rounded-xl">
+                        <i class="fa-solid fa-calendar-check text-purple-400 mb-2 text-lg"></i>
+                        <p class="text-[10px] text-slate-500 font-bold uppercase mb-1">Experience</p>
+                        <p class="text-sm font-semibold text-white">{{ selectedManufacturer.experience }} in OEM</p>
+                    </div>
+                </div>
+
+                <div class="bg-emerald-950/30 border border-emerald-900/50 rounded-xl p-4 flex gap-3 items-start">
+                    <i class="fa-solid fa-shield-check text-emerald-500 mt-0.5"></i>
+                    <div>
+                        <p class="text-sm font-bold text-emerald-400 mb-1">VoltBazaar Verified Source</p>
+                        <p class="text-xs text-slate-300 leading-relaxed">This manufacturer has passed physical factory audits and parts are tested for Indian road conditions. Full return guarantee applies on DOA (Dead on Arrival) parts.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Slide-over B2B Cart Drawer Panel -->
+    <div v-if="isCartOpen" class="fixed inset-0 z-[60] flex justify-end">
+        <div class="absolute inset-0 bg-slate-950/80 backdrop-blur-sm" @click="isCartOpen = false"></div>
+        <div class="relative w-full max-w-md bg-slate-950 border-l border-slate-800 h-full flex flex-col justify-between shadow-2xl animate-fade-in">
+            <!-- Drawer Header -->
+            <div class="p-6 border-b border-slate-800 flex items-center justify-between bg-slate-900/50">
+                <div class="flex items-center gap-3">
+                    <div class="bg-lime-500 text-slate-950 w-8 h-8 rounded-lg flex items-center justify-center shadow-md">
+                        <i class="fa-solid fa-box-open font-bold"></i>
+                    </div>
+                    <h2 class="text-lg font-black text-white">Your Storefront Order</h2>
+                </div>
+                <button @click="isCartOpen = false" class="text-slate-400 hover:text-white bg-slate-800 p-2 rounded-lg cursor-pointer transition-colors"><i class="fa-solid fa-xmark"></i></button>
             </div>
 
             <!-- Drawer Content / Items List -->
             <div class="p-6 overflow-y-auto flex-1 space-y-4">
-                <div v-if="!cart.length" class="text-center py-12 space-y-3">
-                    <div class="text-slate-700"><i class="fa-solid fa-folder-open text-5xl"></i></div>
-                    <p class="text-sm text-slate-400 font-medium">Your purchase order is empty.</p>
-                    <p class="text-xs text-slate-600">Select components from our verified core lines to restock your shelves.</p>
+                <div v-if="!cart.length" class="text-center py-16 space-y-4">
+                    <div class="text-slate-700"><i class="fa-solid fa-cart-arrow-down text-6xl"></i></div>
+                    <div>
+                        <p class="text-base text-white font-bold mb-1">Your purchase order is empty</p>
+                        <p class="text-xs text-slate-400 max-w-[250px] mx-auto">Select wholesale components from our verified core lines to restock your shelves.</p>
+                    </div>
+                    <button @click="isCartOpen = false" class="bg-slate-800 hover:bg-slate-700 text-white text-sm font-bold px-5 py-2.5 rounded-xl border border-slate-700 transition-colors mt-4">Browse Catalog</button>
                 </div>
 
-                <div v-for="(item, index) in cart" :key="index" class="bg-slate-900 border border-slate-800 rounded-xl p-4 flex justify-between items-start gap-4">
-                    <div class="space-y-1">
-                        <h4 class="text-sm font-bold text-white leading-snug">{{ item.name }}</h4>
-                        <p class="text-xs text-slate-500 font-mono">Lot: {{ item.bundleSize }}</p>
-                        <p class="text-xs font-bold text-lime-400">₹{{ formatCurrency(item.price) }}</p>
+                <!-- Cart Items -->
+                <div v-for="(item, index) in cart" :key="index" class="bg-slate-900 border border-slate-700 rounded-xl p-4 flex justify-between items-center gap-4 group">
+                    <div class="flex items-center gap-3 w-full">
+                        <img :src="item.image" class="w-12 h-12 rounded-lg object-cover border border-slate-700">
+                        <div class="flex-1">
+                            <h4 class="text-sm font-bold text-white leading-tight mb-1 line-clamp-1">{{ item.name }}</h4>
+                            <div class="flex justify-between items-center w-full">
+                                <p class="text-[10px] text-slate-400 bg-slate-800 px-2 py-0.5 rounded font-mono">{{ item.bundleSize }}</p>
+                                <p class="text-sm font-black text-lime-400">₹{{ formatCurrency(item.price) }}</p>
+                            </div>
+                        </div>
                     </div>
-                    <button @click="removeFromCart(index)" class="text-slate-500 hover:text-rose-400 p-1 cursor-pointer transition-colors"><i class="fa-solid fa-trash-can text-xs"></i></button>
+                    <button @click="removeFromCart(index)" class="text-slate-500 hover:text-rose-400 bg-slate-800 hover:bg-rose-500/10 w-8 h-8 rounded-lg flex items-center justify-center cursor-pointer transition-colors border border-transparent hover:border-rose-500/30">
+                        <i class="fa-solid fa-trash-can text-xs"></i>
+                    </button>
                 </div>
             </div>
 
             <!-- Drawer Footer / Financial Checkout Layer -->
-            <div v-if="cart.length" class="p-6 border-t border-slate-800 bg-slate-900/40 space-y-4">
-                <div class="space-y-2 text-sm">
-                    <div class="flex justify-between text-slate-400">
-                        <span>Total Items Volume:</span>
-                        <span class="text-white font-medium">{{ cart.length }} Bulk Lots</span>
+            <div v-if="cart.length" class="p-6 border-t border-slate-800 bg-slate-900/80 space-y-5">
+                <div class="bg-slate-950 border border-slate-800 rounded-xl p-4 space-y-3">
+                    <div class="flex justify-between text-xs text-slate-400 font-medium">
+                        <span>Total Lots:</span>
+                        <span class="text-white">{{ cart.length }} Boxes</span>
                     </div>
-                    <div class="flex justify-between text-slate-400">
+                    <div class="flex justify-between text-xs text-slate-400 font-medium">
                         <span>Logistics Cost (Route Rate):</span>
-                        <span class="text-emerald-400 font-bold uppercase tracking-wider text-xs">Free via Route-Pool</span>
+                        <span class="text-emerald-400 font-bold bg-emerald-500/10 px-2 py-0.5 rounded">FREE</span>
                     </div>
-                    <div class="border-t border-slate-800 my-2 pt-2 flex justify-between text-base font-bold">
-                        <span class="text-white">Total Order Value:</span>
-                        <span class="text-lime-400">₹{{ formatCurrency(cartTotal) }}</span>
+                    <div class="border-t border-slate-800 pt-3 flex justify-between items-end">
+                        <span class="text-sm font-bold text-slate-300">Total Value:</span>
+                        <span class="text-2xl font-black text-lime-400 leading-none">₹{{ formatCurrency(cartTotal) }}</span>
                     </div>
                 </div>
 
                 <!-- B2B Fintech Selection Block -->
-                <div class="bg-slate-950 border border-slate-800 rounded-xl p-3 space-y-3">
-                    <div class="flex items-center justify-between">
-                        <div class="flex items-center gap-2">
-                            <input type="radio" id="khata" value="khata" v-model="paymentMethod" class="accent-lime-400 cursor-pointer">
-                            <label for="khata" class="text-xs font-bold text-white cursor-pointer flex items-center gap-1.5">
-                                <i class="fa-solid fa-handshake text-purple-400"></i> Volt-Khata (30-Day Credit)
-                            </label>
+                <div class="space-y-3">
+                    <label class="flex items-center justify-between bg-slate-950 border border-lime-500/50 p-3 rounded-xl cursor-pointer hover:bg-slate-900 transition-colors">
+                        <div class="flex items-center gap-3">
+                            <input type="radio" value="khata" v-model="paymentMethod" class="w-4 h-4 accent-lime-500">
+                            <div>
+                                <p class="text-sm font-bold text-white flex items-center gap-2">Volt-Khata <span class="bg-purple-500/20 text-purple-400 text-[9px] px-1.5 py-0.5 rounded border border-purple-500/30">30 Days</span></p>
+                                <p class="text-[10px] text-slate-400">Pay next month, 0% interest</p>
+                            </div>
                         </div>
-                        <span class="text-[10px] text-slate-500 font-mono">0% Int.</span>
-                    </div>
-                    <div class="flex items-center gap-2">
-                        <input type="radio" id="cod" value="cod" v-model="paymentMethod" class="accent-lime-400 cursor-pointer">
-                        <label for="cod" class="text-xs font-bold text-slate-400 cursor-pointer">Cash on Delivery (No Trade Discount)</label>
-                    </div>
+                        <i class="fa-solid fa-building-columns text-slate-600"></i>
+                    </label>
+
+                    <label class="flex items-center justify-between bg-slate-950 border border-slate-800 p-3 rounded-xl cursor-pointer hover:bg-slate-900 transition-colors">
+                        <div class="flex items-center gap-3">
+                            <input type="radio" value="cod" v-model="paymentMethod" class="w-4 h-4 accent-lime-500">
+                            <div>
+                                <p class="text-sm font-bold text-slate-300">Cash on Delivery</p>
+                                <p class="text-[10px] text-slate-500">Pay cash to driver upon delivery</p>
+                            </div>
+                        </div>
+                        <i class="fa-solid fa-money-bill-wave text-slate-600"></i>
+                    </label>
                 </div>
 
-                <!-- Checkout CTAs -->
-                <button @click="executeB2BCheckout" class="w-full bg-lime-500 hover:bg-lime-400 text-slate-950 font-black py-3 rounded-xl transition-all cursor-pointer shadow-lg shadow-lime-500/10 text-center tracking-wide text-sm uppercase">
-                    Place Official Store Order
+                <!-- Checkout CTA -->
+                <button @click="executeB2BCheckout" class="w-full bg-lime-500 hover:bg-lime-400 text-slate-950 font-black py-3.5 rounded-xl transition-all cursor-pointer shadow-lg shadow-lime-500/20 text-center tracking-wide text-sm uppercase flex justify-center items-center gap-2">
+                    Confirm Order <i class="fa-solid fa-arrow-right"></i>
                 </button>
             </div>
         </div>
@@ -328,14 +358,16 @@
             const availableCredit = ref(500000);
             const isCartOpen = ref(false);
             const activeCategory = ref('All Categories');
+            const searchQuery = ref('');
             const paymentMethod = ref('khata');
             const cart = ref([]);
 
+            // Manufacturer Modal State
+            const isManufacturerModalOpen = ref(false);
+            const selectedManufacturer = ref({});
+
             // Volt-Fit Filter Parameters
-            const fitFilter = ref({
-                make: '',
-                model: ''
-            });
+            const fitFilter = ref({ make: '', model: '' });
 
             // Compatibility Matrix Schema
             const compatMatrix = {
@@ -345,28 +377,114 @@
                 'Bajaj Auto': ['Chetak Premium', 'Chetak Urbane']
             };
 
-            // B2B Demand Pool Simulated Data
-            const groupBuys = ref([
-                { id: 1, sku: 'GB-MCU-60V', title: '60V Smart Vector MCUs (Carton of 50)', price: 42000, current: 85, target: 100, discount: '8%' },
-                { id: 2, sku: 'GB-BMS-HEAVY', title: 'Industrial Battery Management Units (Carton of 20)', price: 31000, current: 42, target: 60, discount: '12%' }
-            ]);
-
-            // High-Value Core Component Stock Data
+            // 10 Detailed Core Component Stock Data
             const products = ref([
-                { id: 1, category: 'Power Subsystems', name: 'Smart On-Board Chargers (12-Unit Box)', description: '72V high-efficiency step chargers with integrated over-voltage auto-shutoff modules.', price: 18500, bundleSize: '12 Units per Box', margin: '22%', fits: { 'Ola Electric': ['S1 Pro Gen 2', 'S1 Air'], 'Ather Energy': ['450X Gen 3'] }, compatSummary: 'Ola S1 Gen2, Ather 450X' },
-                { id: 2, category: 'Power Subsystems', name: 'Heavy-Duty DC-DC Step Down Converters', description: 'Isolated high-frequency converters reducing 72V traction input down to stable 12V terminal layouts.', price: 14200, bundleSize: '40 Units per Box', margin: '35%', fits: { 'TVS Motor': ['iQube S', 'iQube ST'], 'Bajaj Auto': ['Chetak Premium'] }, compatSummary: 'TVS iQube, Bajaj Chetak' },
-                { id: 3, category: 'Drivetrains', name: 'High-Torque PMSM Traction Hub Motors', description: 'Waterproof IP67 rated hub traction drive systems engineered for heavy regular urban payloads.', description: 'High torque density PMSM motor cores optimized for continuous commercial loads.', price: 68000, bundleSize: '5 Units per Box', margin: '18%', fits: { 'Ola Electric': ['S1 Pro Gen 2', 'S1 X+'], 'TVS Motor': ['X Premium'] }, compatSummary: 'Ola S1 Pro/X+, TVS X' },
-                { id: 4, category: 'Wiring & Safety', name: 'Heavy-Duty DC Contactors & Safety Relays', description: 'High-voltage isolation switchgear contacts designed to prevent battery line arcing scenarios.', price: 11000, bundleSize: '25 Units per Box', margin: '28%', fits: { 'Ola Electric': ['S1 Pro Gen 2', 'S1 Air', 'S1 X+'], 'Ather Energy': ['450X Gen 3', '450S', 'Rizta'], 'TVS Motor': ['iQube S', 'iQube ST'], 'Bajaj Auto': ['Chetak Premium'] }, compatSummary: 'Universal Fit (All Models)' },
-                { id: 5, category: 'Wiring & Safety', name: 'Pre-Terminated Copper Busbar Harness Kits', description: 'Flame-retardant braided heavy-gauge custom power cables built for multi-cell pack setups.', price: 16500, bundleSize: '30 Kits per Box', margin: '30%', fits: { 'Ather Energy': ['450X Gen 3', '450S', 'Rizta'] }, compatSummary: 'Ather 450 Series & Rizta Only' }
+                { 
+                    id: 1, category: 'Power Subsystems', 
+                    name: 'Smart On-Board Chargers (72V/12A)', 
+                    description: 'High-efficiency step chargers with integrated over-voltage auto-shutoff modules and cooling fins.', 
+                    price: 18500, bundleSize: '12 Units / Box', margin: '22%', 
+                    image: 'https://placehold.co/600x400/0f172a/a3e635?text=Smart+Charger+Module',
+                    manufacturer: { name: 'ElectroCore Tech', certification: 'ISO 9001:2015, CE Certified', experience: '8 Years' },
+                    fits: { 'Ola Electric': ['S1 Pro Gen 2', 'S1 Air'], 'Ather Energy': ['450X Gen 3'] }, compatSummary: 'Ola S1 Gen2, Ather 450X' 
+                },
+                { 
+                    id: 2, category: 'Power Subsystems', 
+                    name: 'Heavy-Duty DC-DC Converters (72V to 12V)', 
+                    description: 'Isolated high-frequency converters reducing traction input down to stable 12V for lights and horn.', 
+                    price: 14200, bundleSize: '40 Units / Box', margin: '35%', 
+                    image: 'https://placehold.co/600x400/0f172a/a3e635?text=DC-DC+Converter',
+                    manufacturer: { name: 'VoltLink Systems', certification: 'ARAI Approved, ISO 14001', experience: '5 Years' },
+                    fits: { 'TVS Motor': ['iQube S', 'iQube ST'], 'Bajaj Auto': ['Chetak Premium'] }, compatSummary: 'TVS iQube, Bajaj Chetak' 
+                },
+                { 
+                    id: 3, category: 'Drivetrains', 
+                    name: 'High-Torque PMSM Hub Motors (3kW)', 
+                    description: 'Waterproof IP67 rated hub traction drive systems engineered for heavy regular urban payloads.', 
+                    price: 68000, bundleSize: '5 Units / Box', margin: '18%', 
+                    image: 'https://placehold.co/600x400/0f172a/a3e635?text=PMSM+Hub+Motor',
+                    manufacturer: { name: 'RotorDynamics India', certification: 'IATF 16949, IP67 Certified', experience: '12 Years' },
+                    fits: { 'Ola Electric': ['S1 Pro Gen 2', 'S1 X+'], 'TVS Motor': ['X Premium'] }, compatSummary: 'Ola S1 Pro, TVS X' 
+                },
+                { 
+                    id: 4, category: 'Power Subsystems', 
+                    name: 'Advanced Battery Management System (BMS)', 
+                    description: 'Active cell balancing BMS with thermal cut-off limits and Bluetooth diagnostic connectivity.', 
+                    price: 24000, bundleSize: '10 Units / Box', margin: '25%', 
+                    image: 'https://placehold.co/600x400/0f172a/a3e635?text=Smart+BMS+Board',
+                    manufacturer: { name: 'CellGuard Micro', certification: 'ISO 9001, RoHS Compliant', experience: '6 Years' },
+                    fits: { 'Ather Energy': ['450X Gen 3', '450S', 'Rizta'] }, compatSummary: 'Ather 450 Series & Rizta' 
+                },
+                { 
+                    id: 5, category: 'Wiring & Sensors', 
+                    name: 'Heavy-Duty DC Contactors & Relays', 
+                    description: 'High-voltage isolation switchgear contacts designed to prevent battery line arcing scenarios.', 
+                    price: 11000, bundleSize: '25 Units / Box', margin: '28%', 
+                    image: 'https://placehold.co/600x400/0f172a/a3e635?text=DC+Contactor+Relay',
+                    manufacturer: { name: 'SwitchTech Heavy Industries', certification: 'CE, UL Recognized', experience: '15 Years' },
+                    fits: { 'Ola Electric': ['S1 Pro Gen 2', 'S1 Air', 'S1 X+'], 'Ather Energy': ['450X Gen 3', '450S', 'Rizta'], 'TVS Motor': ['iQube S', 'iQube ST'], 'Bajaj Auto': ['Chetak Premium'] }, compatSummary: 'Universal Fit (All Models)' 
+                },
+                { 
+                    id: 6, category: 'Wiring & Sensors', 
+                    name: 'Pre-Terminated Copper Busbar Kits', 
+                    description: 'Flame-retardant braided heavy-gauge custom power cables built for multi-cell pack setups.', 
+                    price: 16500, bundleSize: '30 Kits / Box', margin: '30%', 
+                    image: 'https://placehold.co/600x400/0f172a/a3e635?text=Copper+Busbar+Kit',
+                    manufacturer: { name: 'WireForge EV', certification: 'ISO 9001:2015', experience: '10 Years' },
+                    fits: { 'Ather Energy': ['450X Gen 3', '450S', 'Rizta'] }, compatSummary: 'Ather 450 Series Only' 
+                },
+                { 
+                    id: 7, category: 'Accessories', 
+                    name: '7-inch TFT LCD Instrument Clusters', 
+                    description: 'High-brightness digital displays with CAN-bus integration for speedometer and battery stats.', 
+                    price: 32000, bundleSize: '10 Units / Box', margin: '20%', 
+                    image: 'https://placehold.co/600x400/0f172a/a3e635?text=TFT+Display+Cluster',
+                    manufacturer: { name: 'VisionTech Displays', certification: 'ISO/TS 16949', experience: '7 Years' },
+                    fits: { 'Ola Electric': ['S1 Pro Gen 2'], 'Ather Energy': ['450X Gen 3'] }, compatSummary: 'Ola S1 Pro, Ather 450X' 
+                },
+                { 
+                    id: 8, category: 'Wiring & Sensors', 
+                    name: 'Hall-Effect Throttle Assemblies', 
+                    description: 'Precision magnetic throttle grips with anti-slip rubber coating and waterproof connectors.', 
+                    price: 8500, bundleSize: '50 Units / Box', margin: '42%', 
+                    image: 'https://placehold.co/600x400/0f172a/a3e635?text=Throttle+Assembly',
+                    manufacturer: { name: 'ControlGrip Auto', certification: 'ARAI Approved', experience: '20 Years' },
+                    fits: { 'Bajaj Auto': ['Chetak Premium', 'Chetak Urbane'], 'TVS Motor': ['iQube S', 'iQube ST'] }, compatSummary: 'Bajaj Chetak, TVS iQube' 
+                },
+                { 
+                    id: 9, category: 'Drivetrains', 
+                    name: '72V Vector Motor Control Units (MCU)', 
+                    description: 'Sine-wave controllers ensuring smooth acceleration and highly efficient regenerative braking.', 
+                    price: 45000, bundleSize: '10 Units / Box', margin: '15%', 
+                    image: 'https://placehold.co/600x400/0f172a/a3e635?text=Vector+MCU',
+                    manufacturer: { name: 'ElectroCore Tech', certification: 'ISO 9001:2015, CE Certified', experience: '8 Years' },
+                    fits: { 'Ola Electric': ['S1 Pro Gen 2', 'S1 Air', 'S1 X+'] }, compatSummary: 'Ola S1 Series Only' 
+                },
+                { 
+                    id: 10, category: 'Wiring & Sensors', 
+                    name: 'Electronic Brake Cut-off Sensor Kits', 
+                    description: 'Instant motor-kill switches integrated with brake levers for emergency stopping power.', 
+                    price: 6000, bundleSize: '100 Units / Box', margin: '50%', 
+                    image: 'https://placehold.co/600x400/0f172a/a3e635?text=Brake+Sensor+Kit',
+                    manufacturer: { name: 'SafeStop EV Parts', certification: 'ISO 14001', experience: '4 Years' },
+                    fits: { 'Ola Electric': ['S1 Pro Gen 2', 'S1 Air', 'S1 X+'], 'Ather Energy': ['450X Gen 3', '450S', 'Rizta'], 'TVS Motor': ['iQube S', 'iQube ST', 'X Premium'], 'Bajaj Auto': ['Chetak Premium', 'Chetak Urbane'] }, compatSummary: 'Universal Fit (All Models)' 
+                }
             ]);
 
-            // Computed Filtration Logic
+            // Computed Filtration Logic (Combines Category, Fitment, AND Search)
             const filteredProducts = computed(() => {
                 return products.value.filter(p => {
-                    // 1. Check Category Selection
+                    // 1. Check Search Query
+                    const query = searchQuery.value.toLowerCase();
+                    const matchesSearch = query === '' || 
+                                          p.name.toLowerCase().includes(query) || 
+                                          p.description.toLowerCase().includes(query) ||
+                                          p.category.toLowerCase().includes(query);
+
+                    // 2. Check Category Selection
                     const matchesCategory = activeCategory.value === 'All Categories' || p.category === activeCategory.value;
                     
-                    // 2. Check Volt-Fit Compatibility Selection
+                    // 3. Check Volt-Fit Compatibility Selection
                     let matchesCompatibility = true;
                     if (fitFilter.value.make) {
                         if (!p.fits[fitFilter.value.make]) {
@@ -376,7 +494,7 @@
                         }
                     }
                     
-                    return matchesCategory && matchesCompatibility;
+                    return matchesSearch && matchesCategory && matchesCompatibility;
                 });
             });
 
@@ -399,26 +517,28 @@
                 fitFilter.value.model = '';
             };
 
-            const joinGroupBuy = (pool) => {
-                if (availableCredit.value >= pool.price) {
-                    pool.current += 5;
-                    alert(`Successfully committed to Group-Buy ${pool.sku}! 5 units allocated. Your pooled volume has updated live.`);
-                } else {
-                    alert("Insufficient wholesale credit limits for this block order transaction.");
-                }
+            const resetAllFilters = () => {
+                searchQuery.value = '';
+                activeCategory.value = 'All Categories';
+                resetCompatibilityFilter();
+            };
+
+            const openManufacturerModal = (manufacturerData) => {
+                selectedManufacturer.value = manufacturerData;
+                isManufacturerModalOpen.value = true;
             };
 
             const executeB2BCheckout = () => {
                 const total = cartTotal.value;
                 if (paymentMethod.value === 'khata') {
                     if (total > availableCredit.value) {
-                        alert("Order Denied: The requested wholesale order volume exceeds your available NBFC Volt-Khata credit authorization limit.");
+                        alert("Order Denied: The requested wholesale order volume exceeds your available NBFC Volt-Khata credit limit.");
                         return;
                     }
                     availableCredit.value -= total;
-                    alert(`🎉 Order Confirmed via Institutional Credit Line!\nTotal Amount: ₹${total.toLocaleString('en-IN')}\n\nYour inventory route logistics drop has been scheduled. Tracking data sent to registered business profile.`);
+                    alert(`🎉 Order Confirmed via Institutional Credit Line!\nTotal Amount: ₹${total.toLocaleString('en-IN')}\n\nYour inventory route logistics drop has been scheduled.`);
                 } else {
-                    alert(`🎉 Order Placed under Cash on Delivery!\nTotal Amount: ₹${total.toLocaleString('en-IN')}\n\nPlease keep physical business cash ready upon route delivery arrival.`);
+                    alert(`🎉 Order Placed under Cash on Delivery!\nTotal Amount: ₹${total.toLocaleString('en-IN')}\n\nPlease keep physical cash ready upon route delivery arrival.`);
                 }
                 cart.value = [];
                 isCartOpen.value = false;
@@ -429,25 +549,22 @@
             };
 
             return {
-                availableCredit,
-                isCartOpen,
-                activeCategory,
-                paymentMethod,
-                cart,
-                fitFilter,
-                compatMatrix,
-                groupBuys,
-                filteredProducts,
-                cartTotal,
-                addToCart,
-                removeFromCart,
-                resetCompatibilityFilter,
-                joinGroupBuy,
-                executeB2BCheckout,
-                formatCurrency
+                availableCredit, isCartOpen, activeCategory, searchQuery, paymentMethod, cart,
+                isManufacturerModalOpen, selectedManufacturer, fitFilter, compatMatrix,
+                filteredProducts, cartTotal, addToCart, removeFromCart, resetCompatibilityFilter, resetAllFilters,
+                openManufacturerModal, executeB2BCheckout, formatCurrency
             };
         }
     }).mount('#app');
 </script>
+<style>
+    /* Custom Animations for UI polish */
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+    .animate-fade-in { animation: fadeIn 0.3s ease-out forwards; }
+    
+    /* Utility to hide scrollbar on filter tabs but keep functionality */
+    .scrollbar-hide::-webkit-scrollbar { display: none; }
+    .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
+</style>
 </body>
 </html>
